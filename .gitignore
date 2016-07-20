@@ -3,6 +3,7 @@ release/*
 releaseWindows/*
 squirrel.windows/*
 currently-unhandled/*
+.vscode/*
 app/*
 dist/*
 !release/Waffle Desktop.dmg
