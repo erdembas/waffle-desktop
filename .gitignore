@@ -1,5 +1,11 @@
 node_modules
 release/*
+releaseWindows/*
+squirrel.windows/*
+currently-unhandled/*
+app/*
+dist/*
 !release/Waffle Desktop.dmg
 .DS_Store
 *.sw?
+installer.js

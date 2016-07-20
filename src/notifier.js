@@ -1,7 +1,11 @@
-window.onload = function() {
-  var remote = require('electron').remote;
-  var ipc = require('electron').ipcRenderer;
 
+
+
+window.onload = function () {
+  var remote = require('electron').remote;
+
+  var nativeImage = require('electron').nativeImage;
+  var ipc = require('electron').ipcRenderer;
   // Show window immediately if angular not found
   if (!window.angular) {
     ipc.send("showMainWindow");
@@ -50,11 +54,11 @@ function Notifier(opts) {
 /**
  * Initialize data and listeners
  */
-Notifier.prototype.init = function() {
+Notifier.prototype.init = function () {
   var self = this;
 
   // Listen for ui-view element to be added to the page, then show window
-  this.showWindowOnLoad(function() {
+  this.showWindowOnLoad(function () {
     self.getAccessToken();
     self.getProjectInfo();
     self.listen();
@@ -64,7 +68,7 @@ Notifier.prototype.init = function() {
 /**
  * Identify project info
  */
-Notifier.prototype.getProjectInfo = function() {
+Notifier.prototype.getProjectInfo = function () {
   this.project = this.$scope.repo;
   this.username = this.$scope.username;
   this.ipc.sendToHost('currentProject', this.username + '/' + this.project);
@@ -79,14 +83,14 @@ Notifier.prototype.getProjectInfo = function() {
 /**
  * Get projects list
  */
-Notifier.prototype.getProjectList = function() {
+Notifier.prototype.getProjectList = function () {
   var self = this;
   $.ajax({
     url: 'https://api.waffle.io/user/projects',
     headers: {
       authorization: 'Bearer ' + this.accessToken,
     }
-  }).done(function(data) {
+  }).done(function (data) {
     self.ipc.sendToHost('projectsList', data || []);
   });
 };
@@ -94,12 +98,12 @@ Notifier.prototype.getProjectList = function() {
 /**
  * Identify the access token
  */
-Notifier.prototype.getAccessToken = function() {
+Notifier.prototype.getAccessToken = function () {
   var session = this.app.session;
   var user = session.user;
   var credentials = user.credentials || [];
 
-  var credential = credentials.filter(function(c) {
+  var credential = credentials.filter(function (c) {
     return c.scope === '*';
   })[0];
 
@@ -111,16 +115,16 @@ Notifier.prototype.getAccessToken = function() {
 /**
  * Listen for notification events
  */
-Notifier.prototype.listen = function() {
+Notifier.prototype.listen = function () {
   var self = this;
 
   // Clear unread badge when focused
-  this.window.onfocus = function() {
+  this.window.onfocus = function () {
     self.clearUnread();
   };
 
   // Listen for notifications
-  this.$scope.$on('waffle.alert.info', function(evt, el) {
+  this.$scope.$on('waffle.alert.info', function (evt, el) {
     var $el = $(el);
     var href = $el.attr('href');
     var opts = { path: href };
@@ -166,13 +170,13 @@ Notifier.prototype.listen = function() {
 /**
  * Find card in board
  */
-Notifier.prototype._identifyCard = function(id) {
+Notifier.prototype._identifyCard = function (id) {
   var card;
 
   var board = this.$board.board || {};
   var columns = board.columns || [];
-  columns.forEach(function(col) {
-    var cd = col.cards.filter(function(c) {
+  columns.forEach(function (col) {
+    var cd = col.cards.filter(function (c) {
       return c._id === id;
     })[0];
     if (cd && !card) {
@@ -186,7 +190,7 @@ Notifier.prototype._identifyCard = function(id) {
 /**
  * Show window on load
  */
-Notifier.prototype.showWindowOnLoad = function(cb) {
+Notifier.prototype.showWindowOnLoad = function (cb) {
   var self = this;
   this.crashTimer(30, 'window failed to load');
 
@@ -197,10 +201,10 @@ Notifier.prototype.showWindowOnLoad = function(cb) {
   }
 
   // Observe the page for board loaded
-  var observer = new MutationObserver(function(mutations) {
-    mutations.forEach(function(e) {
+  var observer = new MutationObserver(function (mutations) {
+    mutations.forEach(function (e) {
       if (e.addedNodes) {
-        e.addedNodes.forEach(function(n) {
+        e.addedNodes.forEach(function (n) {
           if (n.localName === 'ui-view') {
             observer.disconnect();
             show();
@@ -212,7 +216,7 @@ Notifier.prototype.showWindowOnLoad = function(cb) {
   observer.observe(document.body, { subtree: true, childList: true });
 
   function show() {
-    setTimeout(function() {
+    setTimeout(function () {
       self.ipc.send("showMainWindow");
       cb();
     }, 500);
@@ -223,7 +227,7 @@ Notifier.prototype.showWindowOnLoad = function(cb) {
 /**
  * App crash timeout
  */
-Notifier.prototype.crashTimer = function(timeout, reason, test) {
+Notifier.prototype.crashTimer = function (timeout, reason, test) {
   if (typeof timeout === 'function') {
     test = timeout;
     reason = null;
@@ -236,13 +240,13 @@ Notifier.prototype.crashTimer = function(timeout, reason, test) {
   }
 
   timeout = parseInt(timeout, 10);
-  timeout = isNaN(timeout)? 30 : timeout;
+  timeout = isNaN(timeout) ? 30 : timeout;
 
   this.clearCrashTimer();
 
   var sec = 0;
   var self = this;
-  this._crashTimer = setInterval(function() {
+  this._crashTimer = setInterval(function () {
     if (sec > timeout) {
       self.clearCrashTimer();
       if (typeof test === 'function' && !test()) {
@@ -253,16 +257,14 @@ Notifier.prototype.crashTimer = function(timeout, reason, test) {
   }, 1000);
 };
 
-Notifier.prototype.clearCrashTimer = function() {
+Notifier.prototype.clearCrashTimer = function () {
   clearInterval(this._crashTimer);
 };
 
 /**
  * Clear unread cound
  */
-Notifier.prototype.clearUnread = function() {
-  this.unreadCount = 0;
-  this.ipc.send('unreadCount', this.unreadCount);
+Notifier.prototype.clearUnread = function () {
 };
 
 /**
@@ -271,7 +273,7 @@ Notifier.prototype.clearUnread = function() {
  * @param {string} title
  * @param {string} body
  */
-Notifier.prototype.send = function(title, body, opts) {
+Notifier.prototype.send = function (title, body, opts) {
   let self = this;
 
   this.unreadCount++;
@@ -283,7 +285,7 @@ Notifier.prototype.send = function(title, body, opts) {
     });
 
     if (opts.path) {
-      n.onclick = function() {
+      n.onclick = function () {
         self.navigateToPath(opts.path);
       };
     }
@@ -293,40 +295,38 @@ Notifier.prototype.send = function(title, body, opts) {
   if (!this.flag('dockBounce')) {
     this.ipc.send('bounceDock');
   }
-  if (!this.flag('dockBadge')) {
-    this.ipc.send('unreadCount', this.unreadCount);
-  }
+
 
   return n;
 };
 
-Notifier.prototype.updateAvailable = function(latestVersion, url) {
+Notifier.prototype.updateAvailable = function (latestVersion, url) {
   var n = new Notification('Update available', {
     body: 'Click here to download v' + latestVersion
   });
   if (url) {
-    n.onclick = function() {
+    n.onclick = function () {
       window.location.href = url;
     };
   }
   return n;
 };
 
-Notifier.prototype.navigateToPath = function(path) {
+Notifier.prototype.navigateToPath = function (path) {
   var self = this;
   var $location = this.injector.get("$location");
   if ($location) {
-    this.$scope.$apply(function() {
+    this.$scope.$apply(function () {
       $location.url(path);
       self.ipc.sendToHost('currentProject', path.slice(1));
     });
   }
 };
 
-Notifier.prototype.flag = function(key) {
+Notifier.prototype.flag = function (key) {
   var settings = this.window.WaffleDesktop || {};
   var prefs = settings.prefs || {};
   var value = prefs[key] || {};
-  var checked = typeof value.checked === 'undefined'? false : value.checked;
+  var checked = typeof value.checked === 'undefined' ? false : value.checked;
   return checked;
 };

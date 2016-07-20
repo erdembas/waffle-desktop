@@ -3,8 +3,8 @@
 const _ = require('lodash');
 const electron = require('electron');
 const storage = require('electron-json-storage');
-const ipcMain  = require('electron').ipcMain;
-
+const ipcMain = require('electron').ipcMain;
+var nativeImage = require('electron').nativeImage;
 const app = electron.app;
 const BrowserWindow = electron.BrowserWindow;
 
@@ -12,8 +12,10 @@ const WINDOW_STATE = 'windowState';
 
 let mainWindow;
 
-function createWindow () {
-  storage.get(WINDOW_STATE, function(err, bounds) {
+
+
+function createWindow() {
+  storage.get(WINDOW_STATE, function (err, bounds) {
     if (err) bounds = null;
 
     var defaults = {
@@ -25,38 +27,37 @@ function createWindow () {
     };
 
     mainWindow = new BrowserWindow(defaults);
+    // if (bounds) {
+    //   mainWindow.setBounds(_.defaults(bounds, defaults));
+    // }
 
-    if (bounds) {
-      mainWindow.setBounds(_.defaults(bounds, defaults));
-    }
+    // if (bounds && bounds.maximized) {
+    //   mainWindow.maximize();
+    // }
 
-    if (bounds && bounds.maximized) {
-      mainWindow.maximize();
-    }
+    mainWindow.maximize();
 
     mainWindow.loadURL(`file://${__dirname}/index.html`);
 
-    ipcMain.on('showMainWindow', function() {
+    ipcMain.on('showMainWindow', function () {
       mainWindow.show();
     });
-    ipcMain.on('hideMainWindow', function() {
+    ipcMain.on('hideMainWindow', function () {
       mainWindow.hide();
     });
-    ipcMain.on('unreadCount', function(evt, unread) {
-      app.dock.setBadge(unread > 0 ? '' + unread : '');
-    });
-    ipcMain.on('bounceDock', function() {
+
+    ipcMain.on('bounceDock', function () {
       app.dock.bounce();
     });
 
     var windows = [];
-    ipcMain.on('newWindow', function(e) {
+    ipcMain.on('newWindow', function (e) {
       var child = new BrowserWindow(mainWindow.getBounds());
       child.loadURL(`file://${__dirname}/index.html`);
       windows.push(child);
     });
 
-    ipcMain.on('crash', function(evt, reason) {
+    ipcMain.on('crash', function (evt, reason) {
       console.error('crashed due to timeout: ' + reason);
       if (process.env.NODE_ENV !== 'development') {
         app.quit();

@@ -4,18 +4,15 @@
   "description": "Wrapper for Waffle.io with desktop notifications",
   "author": "Jeff Andersen <@jeffandersen>",
   "license": "MIT",
-  "readme": "https://github.com/jeffandersen/waffle-desktop",
+  "readme": "https://github.com/erdembas/waffle-desktop",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jeffandersen/waffle-desktop.git"
+    "url": "git+https://github.com/erdembas/waffle-desktop.git"
   },
   "scripts": {
-    "start": "NODE_ENV=development electron . --enable-logging",
-    "build": "npm start",
-    "dist": "npm run clean && npm run dist:osx && npm run dmg && open ./release",
+    "start": "electron .",
     "clean": "rm -rf release/",
-    "dist:osx": "NODE_ENV=production electron-packager ./ \"Waffle Desktop\" --platform=darwin --arch=x64 --icon src/images/icons/circle.icns --out ./release --overwrite",
-    "dmg": "appdmg dmg.json \"release/Waffle Desktop.dmg\""
+    "pack:win": "electron-packager . \"Waffle Desktop for Windows\" --out=dist/win --platform=win32 --arch=ia32"
   },
   "keywords": [
     "waffle",
@@ -24,9 +21,9 @@
   ],
   "main": "src/main.js",
   "devDependencies": {
+    "electron-builder": "5.14.1",
     "electron-packager": "7.1.0",
-    "electron-prebuilt": "1.2.5",
-    "appdmg": "0.4.5"
+    "electron-prebuilt": "1.2.7"
   },
   "dependencies": {
     "electron": "0.4.1",
